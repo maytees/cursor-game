@@ -1,6 +1,14 @@
 import kaplay from "kaplay";
 import "kaplay/global";
+import { io } from "socket.io-client";
 
+const socket = io("http://localhost:3000", {
+  withCredentials: true,
+});
+
+socket.on("hello", (message) => {
+  console.log("Recieved hello event: ", message);
+});
 document.getElementById("playBtn").addEventListener("click", () => {
   startGame();
   document.getElementById("modal").style.display = "none";
