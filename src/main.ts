@@ -9,11 +9,69 @@ const socket = io("http://localhost:3000", {
 socket.on("hello", (message) => {
   console.log("Recieved hello event: ", message);
 });
+
 document.getElementById("playBtn").addEventListener("click", () => {
-  startGame();
+  const enteredRoomCode = (
+    document.getElementById("joinCode") as HTMLInputElement
+  ).value;
+  console.log("Entered room code:", enteredRoomCode);
+  if (enteredRoomCode) {
+    joinRoom(enteredRoomCode);
+  } else {
+    console.error("No room code entered");
+    // Maybe show an error message to the user
+    const errorElement = document.getElementById("errorMessage");
+    errorElement.style.color = "red";
+    errorElement.style.display = "block";
+    errorElement.innerHTML = "Invalid room code!";
+  }
+});
+
+function createRoom() {
+  socket.emit("createRoom");
+}
+
+function joinRoom(roomCode: string) {
+  console.log("room code: ", roomCode, "(frontend)");
+  const e = socket.emit("joinRoom", roomCode);
+}
+
+socket.on("roomCreated", (roomCode) => {
+  console.log(`Room created with join code: ${roomCode}`);
+});
+
+socket.on("waitingForPlayers", () => {
+  console.log("Waiting for another player to join...");
+});
+
+socket.on("gameStart", (data) => {
+  console.log(`Game starting!`, data);
+});
+
+socket.on("roomError", (message) => {
+  console.error("Room err: ", message);
+  const errorElement = document.getElementById("errorMessage");
+  errorElement.style.color = "red";
+  errorElement.style.display = "block";
+  errorElement.innerHTML = "Invalid room code!";
+});
+
+socket.on("connect", () => {
+  console.log("Connected to server");
+});
+
+socket.on("connect_error", (error) => {
+  console.error("Connection error:", error);
+});
+
+socket.on("disconnect", (reason) => {
+  console.log("Disconnected:", reason);
+});
+
+function hideMainMenu() {
   document.getElementById("modal").style.display = "none";
   document.getElementById("triangle-container").style.display = "none";
-});
+}
 
 // Function to start the game
 function startGame() {

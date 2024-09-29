@@ -21,10 +21,6 @@ function generateRoomCode(): string {
 io.on("connection", (socket: Socket) => {
   console.log(`Socket ${socket.id} connected!`);
 
-  socket.on("sigma", () => {
-    console.log("sigma nation checkkk");
-  });
-
   socket.on("createRoom", () => {
     const roomCode = generateRoomCode();
     activeRooms.set(roomCode, {
@@ -36,7 +32,6 @@ io.on("connection", (socket: Socket) => {
   });
 
   socket.on("joinRoom", (roomCode: string) => {
-    console.log("joined room with code:", roomCode);
     const room = activeRooms.get(roomCode);
     if (room && !room.full) {
       room.players.push(socket.id);
