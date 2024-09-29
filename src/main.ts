@@ -9,7 +9,9 @@ document.getElementById("playBtn").addEventListener("click", () => {
 
 // Function to start the game
 function startGame() {
-  const k = kaplay();
+  const k = kaplay({
+    crisp: true,
+  });
 
   k.loadSprite("cursor", "sprites/cursor.svg");
 
@@ -22,7 +24,10 @@ function startGame() {
 
   // Function to get the nearest 8-directional angle
   function getNearestDirection(angle) {
-    const directions = [0, 45, 90, 135, 180, 225, 270, 315];
+    const directions = [
+      0, 22.5, 45, 67.5, 90, 112.5, 135, 157.5, 180, 202.5, 225, 247.5, 270,
+      292.5, 315, 337.5,
+    ];
     return directions.reduce((prev, curr) =>
       Math.abs(curr - angle) < Math.abs(prev - angle) ? curr : prev
     );
