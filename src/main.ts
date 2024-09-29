@@ -1,8 +1,10 @@
 import kaplay from "kaplay";
 import "kaplay/global";
 
-document.getElementById("startButton").addEventListener("click", () => {
+document.getElementById("playBtn").addEventListener("click", () => {
   startGame();
+  document.getElementById("modal").style.display = "none";
+  document.getElementById("triangle-container").style.display = "none";
 });
 
 // Function to start the game
