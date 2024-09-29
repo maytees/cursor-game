@@ -1,26 +1,9 @@
-# Folder structure
+# Cursor Game
 
-- `src` - source code for your kaplay project
-- `www` - distribution folder, contains your index.html, built js bundle and static assets
+A simple game where you control a cursor to move around and battle another player.
 
-## Development
+## Plan?
 
-```sh
-$ npm run dev
-```
+The plan is to use web sockets for the backend, and have cool abilities.
 
-will start a dev server at http://localhost:8000
-
-## Distribution
-
-```sh
-$ npm run build
-```
-
-will build your js files into `www/main.js`
-
-```sh
-$ npm run bundle
-```
-
-will build your game and package into a .zip file, you can upload to your server or itch.io / newground etc.
+*Other than that, I'm kinda just messing around with Kaplay, so no real plan yet.*
