@@ -192,5 +192,157 @@ export function createCreateMenu(k: KAPLAYCtx) {
 
     initCursor(k, player);
     addTitleText(k);
+
+    // Display join code
+    const joinCode = "ABC123"; // This should be generated or fetched
+    k.add([
+      k.text(`Join Code: ${joinCode}`, {
+        size: 32,
+        font: "press2p",
+      }),
+      k.pos(k.center().x, k.center().y - 400),
+      k.color(k.Color.BLACK),
+      k.anchor("top"),
+    ]);
+
+    // Player list
+    const players = [
+      { name: "You", ready: false },
+      { name: "Player 2", ready: true },
+    ];
+
+    const playerStatusObjects = players.map((player, index) => {
+      const statusColor = player.ready
+        ? k.Color.fromHex("#00FF00")
+        : k.Color.fromHex("#FF0000");
+      k.add([
+        k.text(`${player.name}`, {
+          size: 24,
+          font: "press2p",
+        }),
+        k.pos(k.center().x - 170, k.center().y - 50 + index * 40),
+        k.color(k.Color.BLACK),
+        k.anchor("topleft"),
+      ]);
+      return k.add([
+        k.rect(20, 20),
+        k.pos(k.center().x + 150, k.center().y - 40 + index * 40),
+        k.color(statusColor),
+        k.anchor("center"),
+      ]);
+    });
+
+    // Ready/Unready button
+    let isReady = false;
+    const readyButton = k.add([
+      k.rect(56 * 6, 16 * 4),
+      k.pos(k.center().x, k.center().y + 80),
+      k.color(
+        isReady ? k.Color.fromHex("#00FF00") : k.Color.fromHex("#FF0000")
+      ),
+      k.outline(2, k.Color.BLACK),
+      k.anchor("center"),
+      k.area(),
+      "readyButton",
+    ]);
+
+    const readyButtonText = readyButton.add([
+      k.text(isReady ? "Ready" : "Not Ready", { size: 24, font: "press2p" }),
+      k.anchor("center"),
+      k.color(k.Color.BLACK),
+    ]);
+
+    // Start Game button
+    const startButton = k.add([
+      k.rect(56 * 6, 16 * 4),
+      k.pos(k.center().x, k.center().y + 160),
+      k.color(k.Color.fromHex("#999999")),
+      k.outline(2, k.Color.BLACK),
+      k.anchor("center"),
+      k.area(),
+      "startButton",
+    ]);
+
+    const startButtonText = startButton.add([
+      k.text("Start Game", { size: 24, font: "press2p" }),
+      k.anchor("center"),
+      k.color(k.Color.BLACK),
+    ]);
+
+    function updateStartButton() {
+      const allReady = players.every(player => player.ready);
+      if (allReady) {
+        startButton.color = k.Color.GREEN;
+      } else {
+        startButton.color = k.Color.fromHex("#999999");
+      }
+    }
+
+    updateStartButton();
+
+    readyButton.onClick(() => {
+      isReady = !isReady;
+      players[0].ready = isReady;
+      readyButton.color = isReady
+        ? k.Color.fromHex("#00FF00")
+        : k.Color.fromHex("#FF0000");
+      readyButtonText.text = isReady ? "Ready" : "Not Ready";
+      playerStatusObjects[0].color = isReady
+        ? k.Color.fromHex("#00FF00")
+        : k.Color.fromHex("#FF0000");
+      updateStartButton();
+    });
+
+    k.onHover("readyButton", () => {
+      readyButton.color = isReady
+        ? k.Color.fromHex("#00CC00") // Darker green
+        : k.Color.fromHex("#CC0000"); // Darker red
+      readyButtonText.color = k.Color.WHITE;
+    });
+
+    k.onHoverEnd("readyButton", () => {
+      readyButton.color = isReady
+        ? k.Color.fromHex("#00FF00")
+        : k.Color.fromHex("#FF0000");
+      readyButtonText.color = k.Color.BLACK;
+    });
+
+    k.onHover("startButton", () => {
+      const allReady = players.every(player => player.ready);
+      if (allReady) {
+        startButton.color = k.Color.fromHex("#00CC00"); // Darker green
+        startButtonText.color = k.Color.WHITE;
+      }
+    });
+
+    k.onHoverEnd("startButton", () => {
+      const allReady = players.every(player => player.ready);
+      if (allReady) {
+        startButton.color = k.Color.GREEN;
+        startButtonText.color = k.Color.BLACK;
+      }
+    });
+
+    k.onClick("startButton", () => {
+      const allReady = players.every(player => player.ready);
+      if (allReady) {
+        // Add logic to start the game
+        console.log("Starting the game!");
+      } else {
+        // Display a message that all players must be ready
+        k.add([
+          k.text("All players must be ready!", {
+            size: 24,
+            font: "press2p",
+          }),
+          k.pos(k.center().x, k.center().y + 240),
+          k.color(k.Color.RED),
+          k.anchor("center"),
+          k.lifespan(2),
+        ]);
+      }
+    });
+
+    addBackButton(k, "menu", 240);
   });
 }
