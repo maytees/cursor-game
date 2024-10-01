@@ -12,7 +12,7 @@ const io = new Server(httpServer, {
   },
 });
 
-const activeRooms = new Map<string, { players: any[]; full: boolean }>();
+const activeRooms = new Map<string, { players: any[]; full: boolean; host: string }>();
 
 function generateRoomCode(): string {
   return Math.random().toString(36).substring(2, 8).toUpperCase();
@@ -26,6 +26,7 @@ io.on("connection", (socket: Socket) => {
     activeRooms.set(roomCode, {
       players: [{ id: socket.id, ready: false }],
       full: false,
+      host: socket.id,
     });
     socket.join(roomCode);
     socket.emit("roomCreated", roomCode);
@@ -60,11 +61,14 @@ io.on("connection", (socket: Socket) => {
       const room = activeRooms.get(roomCode);
       if (room) {
         io.to(roomCode).emit("playerReady", room.players);
-
-        if (room.players.length === 2 && room.players.every(p => p.ready)) {
-          io.to(roomCode).emit("gameStart", { players: room.players });
-        }
       }
+    }
+  });
+
+  socket.on("startGame", (roomCode: string) => {
+    const room = activeRooms.get(roomCode);
+    if (room && room.host === socket.id && room.players.every(p => p.ready)) {
+      io.to(roomCode).emit("gameStart");
     }
   });
 
@@ -77,6 +81,9 @@ io.on("connection", (socket: Socket) => {
         if (room.players.length === 0) {
           activeRooms.delete(code);
         } else {
+          if (room.host === socket.id) {
+            room.host = room.players[0].id;
+          }
           io.to(code).emit("playerLeft", room.players);
         }
       }
