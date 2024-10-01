@@ -9,7 +9,7 @@ import createPlayer, { addTextHover } from "./util";
 
 function addTitleText(k: KAPLAYCtx) {
   k.add([
-    k.text("Cursor", {
+    k.text("CURSOR", {
       size: 56,
       font: "press2p",
     }),
@@ -274,7 +274,7 @@ export function createWaitingRoomMenu(k: KAPLAYCtx) {
     ]);
 
     function updateStartButton() {
-      const allReady = players.every(player => player.ready);
+      const allReady = players.every((player) => player.ready);
       if (allReady) {
         startButton.color = k.Color.GREEN;
       } else {
@@ -312,7 +312,7 @@ export function createWaitingRoomMenu(k: KAPLAYCtx) {
     });
 
     k.onHover("startButton", () => {
-      const allReady = players.every(player => player.ready);
+      const allReady = players.every((player) => player.ready);
       if (allReady) {
         startButton.color = k.Color.fromHex("#00CC00"); // Darker green
         startButtonText.color = k.Color.WHITE;
@@ -320,7 +320,7 @@ export function createWaitingRoomMenu(k: KAPLAYCtx) {
     });
 
     k.onHoverEnd("startButton", () => {
-      const allReady = players.every(player => player.ready);
+      const allReady = players.every((player) => player.ready);
       if (allReady) {
         startButton.color = k.Color.GREEN;
         startButtonText.color = k.Color.BLACK;
@@ -328,7 +328,7 @@ export function createWaitingRoomMenu(k: KAPLAYCtx) {
     });
 
     k.onClick("startButton", () => {
-      const allReady = players.every(player => player.ready);
+      const allReady = players.every((player) => player.ready);
       if (allReady) {
         // Add logic to start the game
         console.log("Starting the game!");
