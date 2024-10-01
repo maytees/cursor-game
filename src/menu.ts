@@ -115,7 +115,7 @@ export function createMenu(k: KAPLAYCtx) {
     );
 
     k.onClick("createParty", () => {
-      k.go("createMenu");
+      k.go("waitingRoom");
     });
 
     k.onClick("joinParty", () => {
@@ -182,12 +182,16 @@ export function createJoinMenu(k: KAPLAYCtx) {
       true
     );
 
+    k.onClick("confirmCode", () => {
+      k.go("waitingRoom");
+    });
+
     addBackButton(k, "menu", 180);
   });
 }
 
-export function createCreateMenu(k: KAPLAYCtx) {
-  return k.scene("createMenu", () => {
+export function createWaitingRoomMenu(k: KAPLAYCtx) {
+  return k.scene("waitingRoom", () => {
     const player = createPlayer(k);
 
     initCursor(k, player);
@@ -328,6 +332,7 @@ export function createCreateMenu(k: KAPLAYCtx) {
       if (allReady) {
         // Add logic to start the game
         console.log("Starting the game!");
+        k.go("game");
       } else {
         // Display a message that all players must be ready
         k.add([
@@ -335,10 +340,11 @@ export function createCreateMenu(k: KAPLAYCtx) {
             size: 24,
             font: "press2p",
           }),
-          k.pos(k.center().x, k.center().y + 240),
+          k.pos(k.center().x, k.center().y - 440),
           k.color(k.Color.RED),
           k.anchor("center"),
           k.lifespan(2),
+          k.opacity(1),
         ]);
       }
     });
