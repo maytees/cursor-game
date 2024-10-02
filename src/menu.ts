@@ -240,32 +240,44 @@ export function createWaitingRoomMenu(k: KAPLAYCtx, socket: Socket) {
     let players: Player[] = list;
     console.log(players, "is players");
 
+    let playerStatusObjects: any[] = [];
+
+    function updatePlayerList() {
+      // Clear existing player status objects
+      playerStatusObjects.forEach(obj => obj.destroy());
+      playerStatusObjects = [];
+
+      // Recreate player status objects
+      playerStatusObjects = players.map((player, index) => {
+        console.log("at index", index, "player is", player);
+        const statusColor = player.ready
+          ? k.Color.fromHex("#00FF00")
+          : k.Color.fromHex("#FF0000");
+        k.add([
+          k.text(`${player.name}`, {
+            size: 24,
+            font: "press2p",
+          }),
+          k.pos(k.center().x - 170, k.center().y - 50 + index * 40),
+          k.color(k.Color.BLACK),
+          k.anchor("topleft"),
+        ]);
+        return k.add([
+          k.rect(20, 20),
+          k.pos(k.center().x + 150, k.center().y - 40 + index * 40),
+          k.color(statusColor),
+          k.anchor("center"),
+        ]);
+      });
+    }
+
+    updatePlayerList();
+
     socket.on("playerJoined", (plrs: Player[]) => {
       players = plrs;
       console.log(players, " are players arre");
       console.log("plrs", plrs);
-    });
-
-    const playerStatusObjects = players.map((player, index) => {
-      console.log("at index", index, "player is", player);
-      const statusColor = player.ready
-        ? k.Color.fromHex("#00FF00")
-        : k.Color.fromHex("#FF0000");
-      k.add([
-        k.text(`${player.name}`, {
-          size: 24,
-          font: "press2p",
-        }),
-        k.pos(k.center().x - 170, k.center().y - 50 + index * 40),
-        k.color(k.Color.BLACK),
-        k.anchor("topleft"),
-      ]);
-      return k.add([
-        k.rect(20, 20),
-        k.pos(k.center().x + 150, k.center().y - 40 + index * 40),
-        k.color(statusColor),
-        k.anchor("center"),
-      ]);
+      updatePlayerList();
     });
 
     // Ready/Unready button
@@ -323,18 +335,9 @@ export function createWaitingRoomMenu(k: KAPLAYCtx, socket: Socket) {
       updateStartButton();
     });
 
-    socket.on("playerReady", (players: { id: string; ready: boolean }[]) => {
-      // Update all player statuses based on the received data
-      players.forEach((player, index) => {
-        if (index < playerStatusObjects.length) {
-          const statusColor = player.ready
-            ? k.Color.fromHex("#00FF00")
-            : k.Color.fromHex("#FF0000");
-          playerStatusObjects[index].color = statusColor;
-        }
-      });
-
-      // Update the start button state
+    socket.on("playerReady", (updatedPlayers: Player[]) => {
+      players = updatedPlayers;
+      updatePlayerList();
       updateStartButton();
     });
 
