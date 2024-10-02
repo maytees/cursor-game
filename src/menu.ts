@@ -1,4 +1,5 @@
 import { KAPLAYCtx } from "kaplay";
+import { Socket } from "socket.io-client";
 import { initCursor } from "./cursor";
 import createPlayer, { addTextHover } from "./util";
 
@@ -6,6 +7,12 @@ import createPlayer, { addTextHover } from "./util";
 // k.onKeyPress("enter", () => {
 //   k.go("game");
 // });
+
+type Player = {
+  id: string;
+  name: string;
+  ready: boolean;
+};
 
 function addTitleText(k: KAPLAYCtx) {
   k.add([
@@ -53,7 +60,7 @@ function addBackButton(k: KAPLAYCtx, goto: string, yOffset: number) {
   });
 }
 
-export function createMenu(k: KAPLAYCtx) {
+export function createMenu(k: KAPLAYCtx, socket: Socket) {
   return k.scene("menu", () => {
     const player = createPlayer(k);
 
@@ -115,7 +122,12 @@ export function createMenu(k: KAPLAYCtx) {
     );
 
     k.onClick("createParty", () => {
-      k.go("waitingRoom");
+      socket.emit("createRoom");
+      socket.on("roomCreated", (roomCode: string, list: Player[]) => {
+        k.go("waitingRoom", roomCode, list);
+        // This ensures that the listener wont be duplicated
+        socket.off("roomCreated");
+      });
     });
 
     k.onClick("joinParty", () => {
@@ -124,7 +136,7 @@ export function createMenu(k: KAPLAYCtx) {
   });
 }
 
-export function createJoinMenu(k: KAPLAYCtx) {
+export function createJoinMenu(k: KAPLAYCtx, socket: Socket) {
   return k.scene("joinMenu", () => {
     const player = createPlayer(k);
 
@@ -142,7 +154,7 @@ export function createJoinMenu(k: KAPLAYCtx) {
       "createParty",
     ]);
 
-    k.add([
+    const codeInput = k.add([
       k.text("Code", {
         font: "press2p",
       }),
@@ -183,22 +195,37 @@ export function createJoinMenu(k: KAPLAYCtx) {
     );
 
     k.onClick("confirmCode", () => {
-      k.go("waitingRoom");
+      console.log(codeInput.text, "is the code");
+      socket.emit("joinRoom", codeInput.text);
+
+      socket.on("roomError", (error: string) => {
+        // TODO: Display error
+        console.error(error);
+
+        socket.off("roomError");
+      });
+
+      socket.on("joinSuccess", (list: Player[]) => {
+        console.log("Join success");
+        k.go("waitingRoom", codeInput, list);
+
+        socket.off("joinSuccess");
+      });
     });
 
     addBackButton(k, "menu", 180);
   });
 }
 
-export function createWaitingRoomMenu(k: KAPLAYCtx) {
-  return k.scene("waitingRoom", () => {
+export function createWaitingRoomMenu(k: KAPLAYCtx, socket: Socket) {
+  return k.scene("waitingRoom", (joinCode: string, list: Player[]) => {
+    console.log(list, " is host");
     const player = createPlayer(k);
 
     initCursor(k, player);
     addTitleText(k);
 
     // Display join code
-    const joinCode = "ABC123"; // This should be generated or fetched
     k.add([
       k.text(`Join Code: ${joinCode}`, {
         size: 32,
@@ -210,12 +237,17 @@ export function createWaitingRoomMenu(k: KAPLAYCtx) {
     ]);
 
     // Player list
-    const players = [
-      { name: "You", ready: false },
-      { name: "Player 2", ready: true },
-    ];
+    let players: Player[] = list;
+    console.log(players, "is players");
+
+    socket.on("playerJoined", (plrs: Player[]) => {
+      players = plrs;
+      console.log(players, " are players arre");
+      console.log("plrs", plrs);
+    });
 
     const playerStatusObjects = players.map((player, index) => {
+      console.log("at index", index, "player is", player);
       const statusColor = player.ready
         ? k.Color.fromHex("#00FF00")
         : k.Color.fromHex("#FF0000");
@@ -286,14 +318,23 @@ export function createWaitingRoomMenu(k: KAPLAYCtx) {
 
     readyButton.onClick(() => {
       isReady = !isReady;
-      players[0].ready = isReady;
-      readyButton.color = isReady
-        ? k.Color.fromHex("#00FF00")
-        : k.Color.fromHex("#FF0000");
-      readyButtonText.text = isReady ? "Ready" : "Not Ready";
-      playerStatusObjects[0].color = isReady
-        ? k.Color.fromHex("#00FF00")
-        : k.Color.fromHex("#FF0000");
+
+      socket.emit("setReady", isReady);
+      updateStartButton();
+    });
+
+    socket.on("playerReady", (players: { id: string; ready: boolean }[]) => {
+      // Update all player statuses based on the received data
+      players.forEach((player, index) => {
+        if (index < playerStatusObjects.length) {
+          const statusColor = player.ready
+            ? k.Color.fromHex("#00FF00")
+            : k.Color.fromHex("#FF0000");
+          playerStatusObjects[index].color = statusColor;
+        }
+      });
+
+      // Update the start button state
       updateStartButton();
     });
 

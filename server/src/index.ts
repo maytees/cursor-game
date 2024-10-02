@@ -1,9 +1,19 @@
+import cors from "cors"; // Add this import
 import express from "express";
 import { createServer } from "http";
 import { Server, Socket } from "socket.io";
 
 const app = express();
 const httpServer = createServer(app);
+
+app.use(
+  cors({
+    origin: "http://localhost:5173", // Replace with your frontend URL
+    methods: ["GET", "POST"],
+    credentials: true,
+  })
+);
+
 const io = new Server(httpServer, {
   cors: {
     origin: "http://localhost:5173",
@@ -14,6 +24,7 @@ const io = new Server(httpServer, {
 
 type Player = {
   id: string;
+  name: string;
   ready: boolean;
 };
 
@@ -34,16 +45,19 @@ io.on("connection", (socket: Socket) => {
     const roomCode = generateRoomCode();
     // Sets default values for room (party leader isnt ready, party isnt full)
     activeRooms.set(roomCode, {
-      players: [{ id: socket.id, ready: false }],
+      players: [
+        { name: "Player" + socket.id.charAt(5), id: socket.id, ready: false },
+      ],
       full: false,
       host: socket.id,
     });
     // This is putting the creator into the socketio room
     socket.join(roomCode);
     // Telling the client that the room was created
-    socket.emit("roomCreated", roomCode);
+    socket.emit("roomCreated", roomCode, activeRooms.get(roomCode)?.players);
+    // console.log(activeRooms.get(roomCode)?.players, " are list");
     // Dont really know what this is...
-    // io.to(roomCode).emit("playerJoined", activeRooms.get(roomCode)?.players);
+    // socket.emit("playerJoined", activeRooms.get(roomCode)?.players);
   });
 
   socket.on("joinRoom", (roomCode: string) => {
@@ -51,13 +65,18 @@ io.on("connection", (socket: Socket) => {
     const room = activeRooms.get(roomCode);
     if (room && !room.full) {
       // If room is valid and not full...
-      room.players.push({ id: socket.id, ready: false });
+      room.players.push({
+        name: "Player" + socket.id.charAt(5),
+        id: socket.id,
+        ready: false,
+      });
       socket.join(roomCode);
       if (room.players.length === 2) {
         room.full = true;
       }
       // Tell everyone in the socketio room that someone joined
       io.to(roomCode).emit("playerJoined", room.players);
+      socket.emit("joinSuccess", room.players);
     } else {
       socket.emit("roomError", "Room not found or full");
     }
@@ -119,6 +138,17 @@ io.on("connection", (socket: Socket) => {
       }
     });
   });
+});
+
+app.get("/api/room/:roomCode/players", (req, res) => {
+  const { roomCode } = req.params;
+  const room = activeRooms.get(roomCode);
+
+  if (room) {
+    res.json({ players: room.players });
+  } else {
+    res.status(404).json({ error: "Room not found" });
+  }
 });
 
 const PORT = 3000;

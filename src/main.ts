@@ -15,44 +15,9 @@ function initializeSocket() {
   socket.on("connect", () => {
     console.log("Connected to server");
   });
-
-  socket.on("roomCreated", (roomCode) => {
-    console.log(`Room created with join code: ${roomCode}`);
+  socket.on("sigma", () => {
+    console.log("sigma nation");
   });
-  socket.on("playerJoined", (players) => {
-    console.log("Players in room:", players);
-  });
-
-  socket.on("playerLeft", (players) => {
-    console.log("Player left, remaining players:", players);
-  });
-
-  socket.on("playerReady", (players) => {
-    console.log("Player ready status updated:", players);
-  });
-
-  socket.on("gameStart", (data) => {
-    console.log(`Game starting!`, data);
-  });
-
-  socket.on("roomError", (message) => {
-    console.error("Room error: ", message);
-  });
-}
-
-// Function to create a room
-function createRoom() {
-  socket.emit("createRoom");
-}
-
-// Function to join a room
-function joinRoom(roomCode: string) {
-  socket.emit("joinRoom", roomCode);
-}
-
-// Function to set player ready status
-function setReady(isReady: boolean) {
-  socket.emit("setReady", isReady);
 }
 
 const k = kaplay({
@@ -68,9 +33,9 @@ k.loadFont("press2p", "fonts/PressStart2P-Regular.ttf");
 // Initialize socket when the page loads
 initializeSocket();
 
-createMenu(k);
-createJoinMenu(k);
-createWaitingRoomMenu(k);
+createMenu(k, socket);
+createJoinMenu(k, socket);
+createWaitingRoomMenu(k, socket);
 createGameScene(k);
 
 k.go("menu");
