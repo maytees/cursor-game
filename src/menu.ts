@@ -241,19 +241,23 @@ export function createWaitingRoomMenu(k: KAPLAYCtx, socket: Socket) {
     console.log(players, "is players");
 
     let playerStatusObjects: any[] = [];
+    let playerNameObjects: any[] = [];
 
     function updatePlayerList() {
-      // Clear existing player status objects
-      playerStatusObjects.forEach(obj => obj.destroy());
+      // Clear existing player status and name objects
+      playerStatusObjects.forEach((obj) => obj.destroy());
+      playerNameObjects.forEach((obj) => obj.destroy());
       playerStatusObjects = [];
+      playerNameObjects = [];
 
-      // Recreate player status objects
-      playerStatusObjects = players.map((player, index) => {
-        console.log("at index", index, "player is", player);
+      // Recreate player status and name objects
+      players.forEach((player, index) => {
+        console.log(player.name);
         const statusColor = player.ready
           ? k.Color.fromHex("#00FF00")
           : k.Color.fromHex("#FF0000");
-        k.add([
+
+        const nameObj = k.add([
           k.text(`${player.name}`, {
             size: 24,
             font: "press2p",
@@ -262,23 +266,29 @@ export function createWaitingRoomMenu(k: KAPLAYCtx, socket: Socket) {
           k.color(k.Color.BLACK),
           k.anchor("topleft"),
         ]);
-        return k.add([
+        playerNameObjects.push(nameObj);
+
+        const statusObj = k.add([
           k.rect(20, 20),
           k.pos(k.center().x + 150, k.center().y - 40 + index * 40),
           k.color(statusColor),
           k.anchor("center"),
         ]);
+        playerStatusObjects.push(statusObj);
       });
     }
 
-    updatePlayerList();
-
     socket.on("playerJoined", (plrs: Player[]) => {
       players = plrs;
-      console.log(players, " are players arre");
-      console.log("plrs", plrs);
       updatePlayerList();
     });
+
+    socket.on("playerLeft", (plrs: Player[]) => {
+      players = plrs;
+      updatePlayerList();
+    });
+
+    updatePlayerList();
 
     // Ready/Unready button
     let isReady = false;
