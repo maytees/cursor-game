@@ -27,7 +27,13 @@ function addTitleText(k: KAPLAYCtx) {
 }
 
 // goto is the scene to go back to
-function addBackButton(k: KAPLAYCtx, goto: string, yOffset: number) {
+function addBackButton(
+  k: KAPLAYCtx,
+  goto: string,
+  yOffset: number,
+  text?: string,
+  onClickCallback?: any
+) {
   const backButton = k.add([
     k.rect(56 * 6, 16 * 4),
     k.pos(k.center().x, k.center().y + yOffset),
@@ -35,12 +41,11 @@ function addBackButton(k: KAPLAYCtx, goto: string, yOffset: number) {
     k.anchor("center"),
     k.outline(2, k.Color.BLACK),
     k.area(),
-    // This is just a tag
     "backButton",
   ]);
 
   const backButtonText = backButton.add([
-    k.text("Back", { size: 24, font: "press2p" }),
+    k.text(text ? text : "Back", { size: 24, font: "press2p" }),
     k.anchor("center"),
     k.color(k.Color.WHITE),
   ]);
@@ -56,6 +61,9 @@ function addBackButton(k: KAPLAYCtx, goto: string, yOffset: number) {
   );
 
   k.onClick("backButton", () => {
+    if (onClickCallback) {
+      onClickCallback();
+    }
     k.go(goto);
   });
 }
@@ -195,7 +203,6 @@ export function createJoinMenu(k: KAPLAYCtx, socket: Socket) {
     );
 
     k.onClick("confirmCode", () => {
-      console.log(codeInput.text, "is the code");
       socket.emit("joinRoom", codeInput.text);
 
       socket.on("roomError", (error: string) => {
@@ -207,7 +214,7 @@ export function createJoinMenu(k: KAPLAYCtx, socket: Socket) {
 
       socket.on("joinSuccess", (list: Player[]) => {
         console.log("Join success");
-        k.go("waitingRoom", codeInput, list);
+        k.go("waitingRoom", codeInput.text, list);
 
         socket.off("joinSuccess");
       });
@@ -219,7 +226,6 @@ export function createJoinMenu(k: KAPLAYCtx, socket: Socket) {
 
 export function createWaitingRoomMenu(k: KAPLAYCtx, socket: Socket) {
   return k.scene("waitingRoom", (joinCode: string, list: Player[]) => {
-    console.log(list, " is host");
     const player = createPlayer(k);
 
     initCursor(k, player);
@@ -238,7 +244,6 @@ export function createWaitingRoomMenu(k: KAPLAYCtx, socket: Socket) {
 
     // Player list
     let players: Player[] = list;
-    console.log(players, "is players");
 
     let playerStatusObjects: any[] = [];
     let playerNameObjects: any[] = [];
@@ -252,7 +257,6 @@ export function createWaitingRoomMenu(k: KAPLAYCtx, socket: Socket) {
 
       // Recreate player status and name objects
       players.forEach((player, index) => {
-        console.log(player.name);
         const statusColor = player.ready
           ? k.Color.fromHex("#00FF00")
           : k.Color.fromHex("#FF0000");
@@ -284,6 +288,11 @@ export function createWaitingRoomMenu(k: KAPLAYCtx, socket: Socket) {
     });
 
     socket.on("playerLeft", (plrs: Player[]) => {
+      // Don't update if the player which left is the current user
+      if (plrs.some((player) => player.id !== socket.id)) {
+        return;
+      }
+
       players = plrs;
       updatePlayerList();
     });
@@ -403,6 +412,14 @@ export function createWaitingRoomMenu(k: KAPLAYCtx, socket: Socket) {
       }
     });
 
-    addBackButton(k, "menu", 240);
+    addBackButton(k, "menu", 240, "Leave", () => {
+      socket.emit("leave");
+      players = [];
+      playerNameObjects = [];
+      playerStatusObjects = [];
+      updatePlayerList();
+      playerNameObjects = [];
+      playerStatusObjects = [];
+    });
   });
 }

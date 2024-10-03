@@ -15,9 +15,6 @@ function initializeSocket() {
   socket.on("connect", () => {
     console.log("Connected to server");
   });
-  socket.on("sigma", () => {
-    console.log("sigma nation");
-  });
 }
 
 const k = kaplay({

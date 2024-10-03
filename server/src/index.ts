@@ -1,18 +1,9 @@
-import cors from "cors"; // Add this import
 import express from "express";
 import { createServer } from "http";
 import { Server, Socket } from "socket.io";
 
 const app = express();
 const httpServer = createServer(app);
-
-app.use(
-  cors({
-    origin: "http://localhost:5173", // Replace with your frontend URL
-    methods: ["GET", "POST"],
-    credentials: true,
-  })
-);
 
 const io = new Server(httpServer, {
   cors: {
@@ -35,6 +26,24 @@ const activeRooms = new Map<
 
 function generateRoomCode(): string {
   return Math.random().toString(36).substring(2, 8).toUpperCase();
+}
+
+function disconnect(socket: Socket) {
+  activeRooms.forEach((room, code) => {
+    const index = room.players.findIndex((p) => p.id === socket.id);
+    if (index !== -1) {
+      room.players.splice(index, 1);
+      room.full = false;
+      if (room.players.length === 0) {
+        activeRooms.delete(code);
+      } else {
+        if (room.host === socket.id) {
+          room.host = room.players[0].id;
+        }
+        io.to(code).emit("playerLeft", room.players);
+      }
+    }
+  });
 }
 
 io.on("connection", (socket: Socket) => {
@@ -122,33 +131,12 @@ io.on("connection", (socket: Socket) => {
   });
 
   socket.on("disconnect", () => {
-    activeRooms.forEach((room, code) => {
-      const index = room.players.findIndex((p) => p.id === socket.id);
-      if (index !== -1) {
-        room.players.splice(index, 1);
-        room.full = false;
-        if (room.players.length === 0) {
-          activeRooms.delete(code);
-        } else {
-          if (room.host === socket.id) {
-            room.host = room.players[0].id;
-          }
-          io.to(code).emit("playerLeft", room.players);
-        }
-      }
-    });
+    disconnect(socket);
   });
-});
 
-app.get("/api/room/:roomCode/players", (req, res) => {
-  const { roomCode } = req.params;
-  const room = activeRooms.get(roomCode);
-
-  if (room) {
-    res.json({ players: room.players });
-  } else {
-    res.status(404).json({ error: "Room not found" });
-  }
+  socket.on("leave", () => {
+    disconnect(socket);
+  });
 });
 
 const PORT = 3000;
