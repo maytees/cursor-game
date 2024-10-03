@@ -203,7 +203,7 @@ export function createJoinMenu(k: KAPLAYCtx, socket: Socket) {
     );
 
     k.onClick("confirmCode", () => {
-      socket.emit("joinRoom", codeInput.text);
+      socket.emit("joinRoom", codeInput.text.toUpperCase());
 
       socket.on("roomError", (error: string) => {
         // TODO: Display error
