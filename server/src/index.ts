@@ -192,7 +192,46 @@ io.on("connection", (socket: Socket) => {
   socket.on("leave", () => {
     disconnect(socket);
   });
+
+  socket.on(
+    "fireBullet",
+    (bulletData: { id: string; x: number; y: number; angle: number }) => {
+      const roomCode = findRoomCodeForSocket(socket.id);
+      if (roomCode) {
+        socket
+          .to(roomCode)
+          .emit("bulletFired", { ...bulletData, shooter: socket.id });
+      }
+    }
+  );
+
+  socket.on(
+    "bulletHitC",
+    (hitData: {
+      bulletId: string;
+      targetId: string;
+      x: number;
+      y: number;
+      shooter: string;
+    }) => {
+      console.log("test");
+      const roomCode = findRoomCodeForSocket(socket.id);
+      if (roomCode) {
+        io.to(roomCode).emit("bulletHit", hitData);
+      }
+    }
+  );
 });
+
+// Helper function to find the room code for a given socket ID
+function findRoomCodeForSocket(socketId: string): string | undefined {
+  for (const [code, room] of activeRooms.entries()) {
+    if (room.players.some((player) => player.id === socketId)) {
+      return code;
+    }
+  }
+  return undefined;
+}
 
 const PORT = 3000;
 httpServer.listen(PORT, () => {

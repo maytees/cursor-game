@@ -36,7 +36,7 @@ export type Player = {
 
 export function createMenu(k: KAPLAYCtx, socket: Socket) {
   return k.scene("menu", () => {
-    const player = createPlayer(k);
+    const player = createPlayer(k, socket.id);
 
     initCursor(k, player);
     addTitleText(k);
@@ -112,7 +112,7 @@ export function createMenu(k: KAPLAYCtx, socket: Socket) {
 
 export function createJoinMenu(k: KAPLAYCtx, socket: Socket) {
   return k.scene("joinMenu", () => {
-    const player = createPlayer(k);
+    const player = createPlayer(k, socket.id);
 
     initCursor(k, player);
     addTitleText(k);
@@ -193,7 +193,7 @@ export function createJoinMenu(k: KAPLAYCtx, socket: Socket) {
 
 export function createWaitingRoomMenu(k: KAPLAYCtx, socket: Socket) {
   return k.scene("waitingRoom", (joinCode: string, list: Player[]) => {
-    const player = createPlayer(k);
+    const player = createPlayer(k, socket.id);
 
     initCursor(k, player, socket, joinCode);
     addTitleText(k);

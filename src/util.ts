@@ -10,7 +10,8 @@ import {
 } from "kaplay";
 
 export function createPlayer(
-  k: KAPLAYCtx
+  k: KAPLAYCtx,
+  id?: string
 ): GameObj<PosComp | SpriteComp | ScaleComp | RotateComp> {
   return k.add([
     k.pos(100, 100),
@@ -18,7 +19,12 @@ export function createPlayer(
     k.scale(0.1),
     k.rotate(0),
     k.z(50),
-    k.anchor("center"),
+    k.area(),
+    k.anchor("top"),
+    "player",
+    {
+      playerId: id,
+    },
   ]);
 }
 
@@ -30,17 +36,23 @@ export function createEnemy(
     y: number;
   }
 ): GameObj<PosComp | SpriteComp | ScaleComp | RotateComp> {
-  return k.add([
+  const enemyObject = k.add([
     k.pos(pos.x, pos.y),
     k.sprite("enemy_cursor"),
     k.scale(0.1),
     k.rotate(0),
+    k.area(),
     // Enemies should always be below main client?
     // Maybe?
     k.z(40),
     k.anchor("center"),
-    id,
+    "enemy",
+    {
+      playerId: id,
+    },
   ]);
+
+  return enemyObject;
 }
 
 export function addTextHover(
