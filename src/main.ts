@@ -25,6 +25,7 @@ k.setBackground(k.Color.WHITE);
 
 // TODO: Create load assets func
 k.loadSprite("cursor", "sprites/cursor.svg");
+k.loadSprite("enemy_cursor", "sprites/enemy_cursor.svg");
 k.loadFont("press2p", "fonts/PressStart2P-Regular.ttf");
 
 // Initialize socket when the page loads
@@ -33,7 +34,7 @@ initializeSocket();
 createMenu(k, socket);
 createJoinMenu(k, socket);
 createWaitingRoomMenu(k, socket);
-createGameScene(k);
+createGameScene(k, socket);
 
-// k.go("menu");
-k.go("game");
+k.go("menu");
+// k.go("game");

@@ -17,6 +17,12 @@ type Player = {
   id: string;
   name: string;
   ready: boolean;
+  host: boolean; // Might not be good to define host twice (game and player)
+  position: {
+    x: number;
+    y: number;
+  };
+  rotation: number;
 };
 
 const activeRooms = new Map<
@@ -55,7 +61,17 @@ io.on("connection", (socket: Socket) => {
     // Sets default values for room (party leader isnt ready, party isnt full)
     activeRooms.set(roomCode, {
       players: [
-        { name: "Player" + socket.id.charAt(5), id: socket.id, ready: false },
+        {
+          name: "Player" + socket.id.charAt(5),
+          id: socket.id,
+          ready: false,
+          host: true,
+          position: {
+            x: 50,
+            y: 50,
+          },
+          rotation: 0,
+        },
       ],
       full: false,
       host: socket.id,
@@ -74,17 +90,25 @@ io.on("connection", (socket: Socket) => {
     const room = activeRooms.get(roomCode);
     if (room && !room.full) {
       // If room is valid and not full...
+      // TODO: Add something on every player join or smthn?
+      const position = {
+        x: 100,
+        y: 100,
+      };
       room.players.push({
         name: "Player" + socket.id.charAt(5),
         id: socket.id,
         ready: false,
+        host: false,
+        position,
+        rotation: 0,
       });
       socket.join(roomCode);
       if (room.players.length === 2) {
         room.full = true;
       }
       // Tell everyone in the socketio room that someone joined
-      io.to(roomCode).emit("playerJoined", room.players);
+      io.to(roomCode).emit("playerJoined", room.players, socket.id, position);
       socket.emit("joinSuccess", room.players);
     } else {
       socket.emit("roomError", "Room not found or full");
@@ -129,6 +153,37 @@ io.on("connection", (socket: Socket) => {
       console.error(`${socket.id}: Not everyone is ready!`);
     }
   });
+  socket.on(
+    "move",
+    (x: number, y: number, rotation: number, roomCode: string) => {
+      // Find the room with the current socket
+      if (!activeRooms.has(roomCode)) {
+        socket.emit("error", "Invalid room code! (move)");
+        return;
+      }
+
+      let entry = activeRooms.get(roomCode);
+      if (!entry?.players?.some((player) => player.id === socket.id)) {
+        socket.emit("error", "Cannot find player! (move)");
+        return;
+      }
+
+      let player = entry.players.find((player) => player.id === socket.id)!;
+      player.position = { x, y };
+      player.rotation = rotation;
+
+      // Update the player in the array
+      const playerIndex = entry.players.findIndex((p) => p.id === socket.id);
+      if (playerIndex !== -1) {
+        entry.players[playerIndex] = player;
+      }
+
+      activeRooms.set(roomCode, entry);
+
+      // Tell other players in the room that this player moved
+      socket.to(roomCode).emit("playerMoved", socket.id, x, y, rotation);
+    }
+  );
 
   socket.on("disconnect", () => {
     disconnect(socket);

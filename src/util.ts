@@ -9,7 +9,7 @@ import {
   SpriteComp,
 } from "kaplay";
 
-export default function createPlayer(
+export function createPlayer(
   k: KAPLAYCtx
 ): GameObj<PosComp | SpriteComp | ScaleComp | RotateComp> {
   return k.add([
@@ -19,6 +19,27 @@ export default function createPlayer(
     k.rotate(0),
     k.z(50),
     k.anchor("center"),
+  ]);
+}
+
+export function createEnemy(
+  k: KAPLAYCtx,
+  id: string,
+  pos: {
+    x: number;
+    y: number;
+  }
+): GameObj<PosComp | SpriteComp | ScaleComp | RotateComp> {
+  return k.add([
+    k.pos(pos.x, pos.y),
+    k.sprite("enemy_cursor"),
+    k.scale(0.1),
+    k.rotate(0),
+    // Enemies should always be below main client?
+    // Maybe?
+    k.z(40),
+    k.anchor("center"),
+    id,
   ]);
 }
 

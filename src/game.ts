@@ -1,11 +1,12 @@
 import { KAPLAYCtx } from "kaplay";
+import { Socket } from "socket.io-client";
 import { initCursor } from "./cursor";
-import createPlayer, { debounce } from "./util";
+import { createPlayer, debounce } from "./util";
 
 const BULLET_SPEED = 800;
 
-export function createGameScene(k: KAPLAYCtx) {
-  return k.scene("game", () => {
+export function createGameScene(k: KAPLAYCtx, socket: Socket) {
+  return k.scene("game", (code: string) => {
     const player = createPlayer(k);
     // All these todo's will probably be functions,
     // keyword probably... They're just notes for now.
@@ -13,7 +14,7 @@ export function createGameScene(k: KAPLAYCtx) {
     // TODO: Create 3 ability buttons (bottom left)
     // TODO: Create instruction (bottom right)
 
-    initCursor(k, player);
+    initCursor(k, player, socket, code);
 
     k.onMousePress(
       "left",
@@ -42,5 +43,9 @@ export function createGameScene(k: KAPLAYCtx) {
         ]);
       }, 200)
     );
+
+    socket.on("error", (message: string) => {
+      console.error(message);
+    });
   });
 }

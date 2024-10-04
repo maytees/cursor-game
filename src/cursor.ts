@@ -1,6 +1,12 @@
-import { GameObj, KAPLAYCtx } from "kaplay";
+import { GameObj, KAPLAYCtx, PosComp, RotateComp } from "kaplay";
+import { Socket } from "socket.io-client";
 
-export function initCursor(k: KAPLAYCtx, player: GameObj) {
+export function initCursor(
+  k: KAPLAYCtx,
+  player: GameObj<PosComp | RotateComp>,
+  socket?: Socket,
+  roomCode?: string
+) {
   // Function to get the nearest 8-directional angle
   function getNearestDirection(angle) {
     const directions = [
@@ -34,5 +40,9 @@ export function initCursor(k: KAPLAYCtx, player: GameObj) {
       k.lerp(player.pos.x, pos.x, 0.1),
       k.lerp(player.pos.y, pos.y, 0.1)
     );
+
+    if (!socket || !roomCode) return;
+
+    socket.emit("move", player.pos.x, player.pos.y, player.angle, roomCode);
   });
 }

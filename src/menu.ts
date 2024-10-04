@@ -1,10 +1,19 @@
-import { KAPLAYCtx } from "kaplay";
+import {
+  GameObj,
+  KAPLAYCtx,
+  PosComp,
+  RotateComp,
+  ScaleComp,
+  SpriteComp,
+} from "kaplay";
 import { Socket } from "socket.io-client";
 import { initCursor } from "./cursor";
-import createPlayer, {
+import {
   addBackButton,
   addTextHover,
   addTitleText,
+  createEnemy,
+  createPlayer,
   displayError,
 } from "./util";
 
@@ -17,6 +26,12 @@ type Player = {
   id: string;
   name: string;
   ready: boolean;
+  host: boolean;
+  position: {
+    x: number;
+    y: number;
+  };
+  rotation: number;
 };
 
 export function createMenu(k: KAPLAYCtx, socket: Socket) {
@@ -154,7 +169,7 @@ export function createJoinMenu(k: KAPLAYCtx, socket: Socket) {
     );
 
     k.onClick("confirmCode", () => {
-      socket.emit("joinRoom", codeInput.text.toUpperCase());
+      socket.emit("joinRoom", codeInput.text);
 
       socket.on("roomError", (error: string) => {
         // TODO: Display error
@@ -180,8 +195,27 @@ export function createWaitingRoomMenu(k: KAPLAYCtx, socket: Socket) {
   return k.scene("waitingRoom", (joinCode: string, list: Player[]) => {
     const player = createPlayer(k);
 
-    initCursor(k, player);
+    initCursor(k, player, socket, joinCode);
     addTitleText(k);
+
+    // go through list of players and render them?
+
+    const enemies: Map<
+      string,
+      GameObj<PosComp | SpriteComp | ScaleComp | RotateComp>
+    > = new Map();
+
+    list.forEach((player) => {
+      if (player.id === socket.id) return;
+
+      enemies.set(
+        player.id,
+        createEnemy(k, player.id, {
+          x: player.position.x,
+          y: player.position.y,
+        })
+      );
+    });
 
     // Display join code
     k.add([
@@ -234,10 +268,27 @@ export function createWaitingRoomMenu(k: KAPLAYCtx, socket: Socket) {
       });
     }
 
-    socket.on("playerJoined", (plrs: Player[]) => {
-      players = plrs;
-      updatePlayerList();
-    });
+    socket.on(
+      "playerJoined",
+      (
+        plrs: Player[],
+        newPlayerId: string,
+        pos: {
+          x: number;
+          y: number;
+        }
+      ) => {
+        const enemy = createEnemy(k, newPlayerId, {
+          x: pos.x,
+          y: pos.y,
+        });
+
+        enemies.set(newPlayerId, enemy);
+
+        players = plrs;
+        updatePlayerList();
+      }
+    );
 
     socket.on("playerLeft", (plrs: Player[]) => {
       // Don't update if the player which left is the current user
@@ -290,6 +341,7 @@ export function createWaitingRoomMenu(k: KAPLAYCtx, socket: Socket) {
 
     function updateStartButton() {
       const allReady = players.every((player) => player.ready);
+      // Maybe?
       if (allReady) {
         startButton.color = k.Color.GREEN;
       } else {
@@ -347,7 +399,7 @@ export function createWaitingRoomMenu(k: KAPLAYCtx, socket: Socket) {
       if (allReady) {
         // Add logic to start the game
         console.log("Starting the game!");
-        k.go("game");
+        k.go("game", joinCode);
       } else {
         // Display a message that all players must be ready
         displayError(k, "All players must be ready!");
@@ -363,5 +415,22 @@ export function createWaitingRoomMenu(k: KAPLAYCtx, socket: Socket) {
       playerNameObjects = [];
       playerStatusObjects = [];
     });
+
+    socket.on(
+      "playerMoved",
+      (id: string, x: number, y: number, rotation: number) => {
+        // Update enemy position/rotation in enemies map ( not players )
+        if (!enemies.has(id)) {
+          console.error("Invalid user id (move - client)");
+          return;
+        }
+
+        let entry = enemies.get(id);
+        entry.pos = vec2(x, y);
+        entry.rotateTo(rotation);
+
+        enemies.set(id, entry);
+      }
+    );
   });
 }
