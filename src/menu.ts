@@ -430,7 +430,9 @@ export function createWaitingRoomMenu(k: KAPLAYCtx, socket: Socket) {
       (id: string, x: number, y: number, rotation: number) => {
         // Update enemy position/rotation in enemies map ( not players )
         if (!enemies.has(id)) {
-          console.error("Invalid user id (move - client)");
+          const message = "Invalid user id;";
+          console.error(message);
+          displayError(k, message, 5);
           return;
         }
 

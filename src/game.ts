@@ -1,7 +1,7 @@
 import { KAPLAYCtx } from "kaplay";
 import { Socket } from "socket.io-client";
 import { initCursor } from "./cursor";
-import { createPlayer, debounce } from "./util";
+import { createPlayer, debounce, displayError } from "./util";
 
 const BULLET_SPEED = 800;
 
@@ -45,6 +45,7 @@ export function createGameScene(k: KAPLAYCtx, socket: Socket) {
     );
 
     socket.on("error", (message: string) => {
+      displayError(k, message, 5);
       console.error(message);
     });
   });
