@@ -18,6 +18,7 @@ export default function createPlayer(
     k.scale(0.1),
     k.rotate(0),
     k.z(50),
+    k.anchor("center"),
   ]);
 }
 
@@ -118,4 +119,17 @@ export function displayError(k: KAPLAYCtx, error: string, lifeSpan?: number) {
     k.lifespan(lifeSpan ? lifeSpan : 2),
     k.opacity(1),
   ]);
+}
+
+export function debounce(func, delay) {
+  let timeoutId;
+  return function (...args) {
+    if (timeoutId) {
+      return;
+    }
+    func.apply(this, args);
+    timeoutId = setTimeout(() => {
+      timeoutId = null;
+    }, delay);
+  };
 }

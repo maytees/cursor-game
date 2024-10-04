@@ -35,4 +35,5 @@ createJoinMenu(k, socket);
 createWaitingRoomMenu(k, socket);
 createGameScene(k);
 
-k.go("menu");
+// k.go("menu");
+k.go("game");
