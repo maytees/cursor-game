@@ -12,8 +12,6 @@ import { createHealthBar, decreaseHealth, updateHealthBar } from "./healthbar";
 import { Player } from "./menu";
 import { createEnemy, createPlayer, debounce, displayError } from "./util";
 
-const BULLET_SPEED = 2800;
-
 export function createGameScene(k: KAPLAYCtx, socket: Socket) {
   return k.scene("game", (code: string, list: Player[]) => {
     const player = createPlayer(k, socket.id);
@@ -173,12 +171,8 @@ export function createGameScene(k: KAPLAYCtx, socket: Socket) {
 
     // Check for bullet collisions with enemies
     k.onCollide("bullet", "enemy", (bullet, enemy) => {
+      console.log("Bullet hit enemy", enemy.playerId, bullet.shooter);
       handleBulletCollision(bullet, enemy);
-    });
-
-    // Check for bullet collisions with the current player
-    k.onCollide("bullet", "player", (bullet, playerObj) => {
-      handleBulletCollision(bullet, playerObj);
     });
 
     // Listen for bullet hits
