@@ -12,7 +12,7 @@ import { createHealthBar, decreaseHealth, updateHealthBar } from "./healthbar";
 import { Player } from "./menu";
 import { createEnemy, createPlayer, debounce, displayError } from "./util";
 
-const BULLET_SPEED = 5800;
+const BULLET_SPEED = 2800;
 
 export function createGameScene(k: KAPLAYCtx, socket: Socket) {
   return k.scene("game", (code: string, list: Player[]) => {
@@ -67,30 +67,7 @@ export function createGameScene(k: KAPLAYCtx, socket: Socket) {
     k.onMousePress(
       "left",
       debounce(() => {
-        // Get player direciton
-        // Shoot bullet
-        // const direction = player.pos.unit();
-
-        const angleRad = ((player.angle - 90) * Math.PI) / 180;
-
-        // Calculate the x and y components of the unit vector
-        const x = Math.cos(angleRad);
-        const y = Math.sin(angleRad);
-
-        const bulletId = `${socket.id}-${Date.now()}`;
-        const bullet = k.add([
-          k.pos(vec2(player.pos.x + x, player.pos.y + y)),
-          k.move(k.vec2(x, y), BULLET_SPEED),
-          k.rect(2, 20),
-          k.rotate(player.angle),
-          k.area(),
-          k.offscreen({ destroy: true }),
-          k.anchor("center"),
-          k.color(k.Color.BLACK),
-          "bullet",
-        ]);
-
-        bullets.set(bulletId, bullet);
+        const bulletId = `${socket.id}-$${Date.now()}`;
 
         // Emit bullet creation to server
         socket.emit("fireBullet", {
@@ -98,12 +75,6 @@ export function createGameScene(k: KAPLAYCtx, socket: Socket) {
           x: player.pos.x,
           y: player.pos.y,
           angle: player.angle,
-        });
-
-        // Destroy bullet after 5 seconds
-        k.wait(5, () => {
-          bullet.destroy();
-          bullets.delete(bulletId);
         });
       }, 200)
     );
@@ -122,11 +93,10 @@ export function createGameScene(k: KAPLAYCtx, socket: Socket) {
         const angleRad = ((angle - 90) * Math.PI) / 180;
         const dirX = Math.cos(angleRad);
         const dirY = Math.sin(angleRad);
-
         const bullet = k.add([
-          k.pos(x + dirX, y + dirY),
+          k.pos(x, y),
           k.move(k.vec2(dirX, dirY), BULLET_SPEED),
-          k.rect(2, 20),
+          k.rect(5, 50),
           k.rotate(angle),
           k.area(),
           k.offscreen({ destroy: true }),
@@ -137,9 +107,7 @@ export function createGameScene(k: KAPLAYCtx, socket: Socket) {
             shooter: bulletData.shooter,
           },
         ]);
-
         bullets.set(id, bullet);
-
         // Destroy bullet after 5 seconds
         k.wait(5, () => {
           bullet.destroy();
@@ -148,25 +116,69 @@ export function createGameScene(k: KAPLAYCtx, socket: Socket) {
       }
     );
 
-    function handleBulletCollision(bullet: GameObj, other: GameObj) {
+    // function handleEnemyBulletCollision(
+    //   bullet: GameObj,
+    //   enemy: GameObj<
+    //     | PosComp
+    //     | SpriteComp
+    //     | ScaleComp
+    //     | RotateComp
+    //     | {
+    //         playerId: string;
+    //       }
+    //   >
+    // ) {
+    //   const bulletId = Array.from(bullets.entries()).find(
+    //     ([_, b]) => b === bullet
+    //   )?.[0];
+
+    //   if (bulletId && bullet.shooter !== enemy.playerId) {
+    //     socket.emit("bulletHitC", {
+    //       bulletId,
+    //       targetId: enemy.playerId,
+    //       x: enemy.pos.x,
+    //       y: enemy.pos.y,
+    //       shooter: bullet.shooter, // i think this sends the player's id?
+    //     });
+    //     bullet.opacity = 0.1;
+    //     bullet.destroy();
+    //     bullets.delete(bulletId);
+    //   }
+    // }
+
+    function handleBulletCollision(bullet: GameObj, target: GameObj) {
       const bulletId = Array.from(bullets.entries()).find(
         ([_, b]) => b === bullet
       )?.[0];
-      if (bulletId) {
+
+      if (bulletId && bullet.shooter !== target.playerId) {
         socket.emit("bulletHitC", {
           bulletId,
-          targetId: other.playerId,
-          x: other.pos.x,
-          y: other.pos.y,
-          shooter: bullet.shooter, // i think this sends the player's id?
+          targetId: target.playerId,
+          x: target.pos.x,
+          y: target.pos.y,
+          shooter: bullet.shooter,
         });
+        bullet.opacity = 0.1;
         bullet.destroy();
         bullets.delete(bulletId);
+
+        // If the target is the current player, update health locally
+        if (target.playerId === socket.id) {
+          decreaseHealth(player, 10);
+          updateHealthBar(healthBar, player);
+        }
       }
     }
+
     // Check for bullet collisions with enemies
     k.onCollide("bullet", "enemy", (bullet, enemy) => {
       handleBulletCollision(bullet, enemy);
+    });
+
+    // Check for bullet collisions with the current player
+    k.onCollide("bullet", "player", (bullet, playerObj) => {
+      handleBulletCollision(bullet, playerObj);
     });
 
     // Listen for bullet hits
