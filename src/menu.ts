@@ -1,7 +1,12 @@
 import { KAPLAYCtx } from "kaplay";
 import { Socket } from "socket.io-client";
 import { initCursor } from "./cursor";
-import createPlayer, { addTextHover } from "./util";
+import createPlayer, {
+  addBackButton,
+  addTextHover,
+  addTitleText,
+  displayError,
+} from "./util";
 
 // Only use this for reference
 // k.onKeyPress("enter", () => {
@@ -13,74 +18,6 @@ type Player = {
   name: string;
   ready: boolean;
 };
-
-function addTitleText(k: KAPLAYCtx) {
-  k.add([
-    k.text("CURSOR", {
-      size: 56,
-      font: "press2p",
-    }),
-    k.anchor("center"),
-    k.color(k.Color.BLACK),
-    k.pos(k.center().x, k.center().y - 100),
-  ]);
-}
-
-// goto is the scene to go back to
-function addBackButton(
-  k: KAPLAYCtx,
-  goto: string,
-  yOffset: number,
-  text?: string,
-  onClickCallback?: any
-) {
-  const backButton = k.add([
-    k.rect(56 * 6, 16 * 4),
-    k.pos(k.center().x, k.center().y + yOffset),
-    k.color(k.Color.BLACK),
-    k.anchor("center"),
-    k.outline(2, k.Color.BLACK),
-    k.area(),
-    "backButton",
-  ]);
-
-  const backButtonText = backButton.add([
-    k.text(text ? text : "Back", { size: 24, font: "press2p" }),
-    k.anchor("center"),
-    k.color(k.Color.WHITE),
-  ]);
-
-  addTextHover(
-    k,
-    backButton,
-    "backButton",
-    k.Color.WHITE,
-    k.Color.BLACK,
-    backButtonText,
-    true
-  );
-
-  k.onClick("backButton", () => {
-    if (onClickCallback) {
-      onClickCallback();
-    }
-    k.go(goto);
-  });
-}
-
-function displayError(k: KAPLAYCtx, error: string, lifeSpan?: number) {
-  k.add([
-    k.text(error, {
-      size: 24,
-      font: "press2p",
-    }),
-    k.pos(k.center().x, k.center().y - 340),
-    k.color(k.Color.RED),
-    k.anchor("center"),
-    k.lifespan(lifeSpan ? lifeSpan : 2),
-    k.opacity(1),
-  ]);
-}
 
 export function createMenu(k: KAPLAYCtx, socket: Socket) {
   return k.scene("menu", () => {
