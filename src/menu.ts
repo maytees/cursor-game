@@ -248,7 +248,7 @@ export function createWaitingRoomMenu(k: KAPLAYCtx, socket: Socket) {
           : k.Color.fromHex("#FF0000");
 
         const nameObj = k.add([
-          k.text(`${player.name}`, {
+          k.text(`${socket.id === player.id ? "YOU" : player.name}`, {
             size: 24,
             font: "press2p",
           }),
