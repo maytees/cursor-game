@@ -143,7 +143,7 @@ io.on("connection", (socket: Socket) => {
     const room = activeRooms.get(roomCode);
     // Checks if 1. Room exists 2. "Starter" is the room creator 3. All players are ready
     if (room && room.host === socket.id && room.players.every((p) => p.ready)) {
-      io.to(roomCode).emit("gameStart");
+      socket.broadcast.to(roomCode).emit("gameStart");
       console.log(`${socket.id}: Emitted game start!`);
     } else if (!room) {
       console.error(`${socket.id}: Could not start game!`);

@@ -22,7 +22,7 @@ import {
 //   k.go("game");
 // });
 
-type Player = {
+export type Player = {
   id: string;
   name: string;
   ready: boolean;
@@ -303,7 +303,6 @@ export function createWaitingRoomMenu(k: KAPLAYCtx, socket: Socket) {
         updatePlayerList();
         k.go("menu");
       }
-      console.log("afterleave");
 
       players = plrs;
       updatePlayerList();
@@ -422,13 +421,19 @@ export function createWaitingRoomMenu(k: KAPLAYCtx, socket: Socket) {
         if (allReady) {
           // Add logic to start the game
           console.log("Starting the game!");
-          k.go("game", joinCode);
+          socket.emit("startGame", joinCode);
+          k.go("game", joinCode, players);
         } else {
           // Display a message that all players must be ready
           displayError(k, "All players must be ready!");
         }
       });
     }
+
+    socket.on("gameStart", () => {
+      console.log("Starting the game!");
+      k.go("game", joinCode, players);
+    });
 
     addBackButton(k, "menu", 240, "Leave", () => {
       socket.emit("leave");
