@@ -68,6 +68,20 @@ function addBackButton(
   });
 }
 
+function displayError(k: KAPLAYCtx, error: string, lifeSpan?: number) {
+  k.add([
+    k.text(error, {
+      size: 24,
+      font: "press2p",
+    }),
+    k.pos(k.center().x, k.center().y - 340),
+    k.color(k.Color.RED),
+    k.anchor("center"),
+    k.lifespan(lifeSpan ? lifeSpan : 2),
+    k.opacity(1),
+  ]);
+}
+
 export function createMenu(k: KAPLAYCtx, socket: Socket) {
   return k.scene("menu", () => {
     const player = createPlayer(k);
@@ -208,6 +222,7 @@ export function createJoinMenu(k: KAPLAYCtx, socket: Socket) {
       socket.on("roomError", (error: string) => {
         // TODO: Display error
         console.error(error);
+        displayError(k, error);
 
         socket.off("roomError");
       });
@@ -398,17 +413,18 @@ export function createWaitingRoomMenu(k: KAPLAYCtx, socket: Socket) {
         k.go("game");
       } else {
         // Display a message that all players must be ready
-        k.add([
-          k.text("All players must be ready!", {
-            size: 24,
-            font: "press2p",
-          }),
-          k.pos(k.center().x, k.center().y - 440),
-          k.color(k.Color.RED),
-          k.anchor("center"),
-          k.lifespan(2),
-          k.opacity(1),
-        ]);
+        displayError(k, "All players must be ready!");
+        // k.add([
+        //   k.text("All players must be ready!", {
+        //     size: 24,
+        //     font: "press2p",
+        //   }),
+        //   k.pos(k.center().x, k.center().y - 440),
+        //   k.color(k.Color.RED),
+        //   k.anchor("center"),
+        //   k.lifespan(2),
+        //   k.opacity(1),
+        // ]);
       }
     });
 
