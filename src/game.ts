@@ -12,6 +12,8 @@ import { createHealthBar, decreaseHealth, updateHealthBar } from "./healthbar";
 import { Player } from "./menu";
 import { createEnemy, createPlayer, debounce, displayError } from "./util";
 
+const BULLET_SPEED = 2800;
+
 export function createGameScene(k: KAPLAYCtx, socket: Socket) {
   return k.scene("game", (code: string, list: Player[]) => {
     const player = createPlayer(k, socket.id);
