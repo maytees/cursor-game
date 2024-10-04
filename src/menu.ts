@@ -292,9 +292,7 @@ export function createWaitingRoomMenu(k: KAPLAYCtx, socket: Socket) {
 
     socket.on("playerLeft", (plrs: Player[]) => {
       // Don't update if the player which left is the current user
-      if (plrs.some((player) => player.id !== socket.id)) {
-        return;
-      }
+      if (plrs.some((player) => player.id !== socket.id)) return;
 
       // If the player which left is the host, then disconnect
       if (!plrs.some((player) => player.host)) {
@@ -333,26 +331,33 @@ export function createWaitingRoomMenu(k: KAPLAYCtx, socket: Socket) {
       k.color(k.Color.BLACK),
     ]);
 
-    // Start Game button
-    const startButton = k.add([
-      k.rect(56 * 6, 16 * 4),
-      k.pos(k.center().x, k.center().y + 160),
-      k.color(k.Color.fromHex("#999999")),
-      k.outline(2, k.Color.BLACK),
-      k.anchor("center"),
-      k.area(),
-      "startButton",
-    ]);
+    // Start Game button (only for host)
+    let startButton: GameObj;
+    let startButtonText: GameObj;
 
-    const startButtonText = startButton.add([
-      k.text("Start Game", { size: 24, font: "press2p" }),
-      k.anchor("center"),
-      k.color(k.Color.BLACK),
-    ]);
+    const currentPlayer = players.find((player) => player.id === socket.id);
+    if (currentPlayer && currentPlayer.host) {
+      startButton = k.add([
+        k.rect(56 * 6, 16 * 4),
+        k.pos(k.center().x, k.center().y + 160),
+        k.color(k.Color.fromHex("#999999")),
+        k.outline(2, k.Color.BLACK),
+        k.anchor("center"),
+        k.area(),
+        "startButton",
+      ]);
+
+      startButtonText = startButton.add([
+        k.text("Start Game", { size: 24, font: "press2p" }),
+        k.anchor("center"),
+        k.color(k.Color.BLACK),
+      ]);
+    }
 
     function updateStartButton() {
+      if (!currentPlayer || !currentPlayer.host) return;
+
       const allReady = players.every((player) => player.ready);
-      // Maybe?
       if (allReady) {
         startButton.color = k.Color.GREEN;
       } else {
@@ -360,19 +365,25 @@ export function createWaitingRoomMenu(k: KAPLAYCtx, socket: Socket) {
       }
     }
 
-    updateStartButton();
+    if (currentPlayer && currentPlayer.host) {
+      updateStartButton();
+    }
+
+    socket.on("playerReady", (updatedPlayers: Player[]) => {
+      players = updatedPlayers;
+      updatePlayerList();
+      if (currentPlayer && currentPlayer.host) {
+        updateStartButton();
+      }
+    });
 
     readyButton.onClick(() => {
       isReady = !isReady;
 
       socket.emit("setReady", isReady);
-      updateStartButton();
-    });
-
-    socket.on("playerReady", (updatedPlayers: Player[]) => {
-      players = updatedPlayers;
-      updatePlayerList();
-      updateStartButton();
+      if (currentPlayer && currentPlayer.host) {
+        updateStartButton();
+      }
     });
 
     k.onHover("readyButton", () => {
@@ -389,33 +400,35 @@ export function createWaitingRoomMenu(k: KAPLAYCtx, socket: Socket) {
       readyButtonText.color = k.Color.BLACK;
     });
 
-    k.onHover("startButton", () => {
-      const allReady = players.every((player) => player.ready);
-      if (allReady) {
-        startButton.color = k.Color.fromHex("#00CC00"); // Darker green
-        startButtonText.color = k.Color.WHITE;
-      }
-    });
+    if (currentPlayer && currentPlayer.host) {
+      k.onHover("startButton", () => {
+        const allReady = players.every((player) => player.ready);
+        if (allReady) {
+          startButton.color = k.Color.fromHex("#00CC00"); // Darker green
+          startButtonText.color = k.Color.WHITE;
+        }
+      });
 
-    k.onHoverEnd("startButton", () => {
-      const allReady = players.every((player) => player.ready);
-      if (allReady) {
-        startButton.color = k.Color.GREEN;
-        startButtonText.color = k.Color.BLACK;
-      }
-    });
+      k.onHoverEnd("startButton", () => {
+        const allReady = players.every((player) => player.ready);
+        if (allReady) {
+          startButton.color = k.Color.GREEN;
+          startButtonText.color = k.Color.BLACK;
+        }
+      });
 
-    k.onClick("startButton", () => {
-      const allReady = players.every((player) => player.ready);
-      if (allReady) {
-        // Add logic to start the game
-        console.log("Starting the game!");
-        k.go("game", joinCode);
-      } else {
-        // Display a message that all players must be ready
-        displayError(k, "All players must be ready!");
-      }
-    });
+      k.onClick("startButton", () => {
+        const allReady = players.every((player) => player.ready);
+        if (allReady) {
+          // Add logic to start the game
+          console.log("Starting the game!");
+          k.go("game", joinCode);
+        } else {
+          // Display a message that all players must be ready
+          displayError(k, "All players must be ready!");
+        }
+      });
+    }
 
     addBackButton(k, "menu", 240, "Leave", () => {
       socket.emit("leave");
@@ -430,6 +443,7 @@ export function createWaitingRoomMenu(k: KAPLAYCtx, socket: Socket) {
       (id: string, x: number, y: number, rotation: number) => {
         // Update enemy position/rotation in enemies map ( not players )
         if (!enemies.has(id)) {
+          console.log(id);
           const message = "Invalid user id;";
           console.error(message);
           displayError(k, message, 5);
