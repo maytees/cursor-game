@@ -7,28 +7,13 @@ export function initCursor(
   socket?: Socket,
   roomCode?: string
 ) {
-  // Function to get the nearest 8-directional angle
-  function getNearestDirection(angle) {
-    const directions = [
-      0, 22.5, 45, 67.5, 90, 112.5, 135, 157.5, 180, 202.5, 225, 247.5, 270,
-      292.5, 315, 337.5,
-    ];
-    return directions.reduce((prev, curr) =>
-      Math.abs(curr - angle) < Math.abs(prev - angle) ? curr : prev
-    );
-  }
-
   k.onMouseMove((pos) => {
     const angle = Math.atan2(pos.y - player.pos.y, pos.x - player.pos.x);
-
     // Convert radians to degrees and adjust for Kaplay's rotation system
     let degrees = (angle * (180 / Math.PI) + 90 + 360) % 360;
 
-    // Get the nearest 8-directional angle
-    const targetAngle = getNearestDirection(degrees);
-
     // Calculate the shortest rotation path
-    let rotationDiff = targetAngle - player.angle;
+    let rotationDiff = degrees - player.angle;
     if (rotationDiff > 180) rotationDiff -= 360;
     if (rotationDiff < -180) rotationDiff += 360;
 
@@ -41,8 +26,8 @@ export function initCursor(
       k.lerp(player.pos.y, pos.y, 0.1)
     );
 
-    if (!socket || !roomCode) return;
-
-    socket.emit("move", player.pos.x, player.pos.y, player.angle, roomCode);
+    if (socket && roomCode) {
+      socket.emit("move", player.pos.x, player.pos.y, player.angle, roomCode);
+    }
   });
 }
