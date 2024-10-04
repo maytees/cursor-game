@@ -149,7 +149,6 @@ export function createGameScene(k: KAPLAYCtx, socket: Socket) {
     );
 
     function handleBulletCollision(bullet: GameObj, other: GameObj) {
-      console.log("hit");
       const bulletId = Array.from(bullets.entries()).find(
         ([_, b]) => b === bullet
       )?.[0];

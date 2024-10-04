@@ -214,7 +214,6 @@ io.on("connection", (socket: Socket) => {
       y: number;
       shooter: string;
     }) => {
-      console.log("test");
       const roomCode = findRoomCodeForSocket(socket.id);
       if (roomCode) {
         io.to(roomCode).emit("bulletHit", hitData);
