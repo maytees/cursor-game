@@ -296,6 +296,17 @@ export function createWaitingRoomMenu(k: KAPLAYCtx, socket: Socket) {
         return;
       }
 
+      // If the player which left is the host, then disconnect
+      if (!plrs.some((player) => player.host)) {
+        socket.emit("leave");
+        players = [];
+        playerNameObjects = [];
+        playerStatusObjects = [];
+        updatePlayerList();
+        k.go("menu");
+      }
+      console.log("afterleave");
+
       players = plrs;
       updatePlayerList();
     });
@@ -412,8 +423,6 @@ export function createWaitingRoomMenu(k: KAPLAYCtx, socket: Socket) {
       playerNameObjects = [];
       playerStatusObjects = [];
       updatePlayerList();
-      playerNameObjects = [];
-      playerStatusObjects = [];
     });
 
     socket.on(
