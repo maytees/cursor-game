@@ -351,17 +351,6 @@ export function createWaitingRoomMenu(k: KAPLAYCtx, socket: Socket) {
       } else {
         // Display a message that all players must be ready
         displayError(k, "All players must be ready!");
-        // k.add([
-        //   k.text("All players must be ready!", {
-        //     size: 24,
-        //     font: "press2p",
-        //   }),
-        //   k.pos(k.center().x, k.center().y - 440),
-        //   k.color(k.Color.RED),
-        //   k.anchor("center"),
-        //   k.lifespan(2),
-        //   k.opacity(1),
-        // ]);
       }
     });
 
