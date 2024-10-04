@@ -1,4 +1,6 @@
 import {
+  AnchorComp,
+  AreaComp,
   Color,
   ColorComp,
   GameObj,
@@ -7,12 +9,25 @@ import {
   RotateComp,
   ScaleComp,
   SpriteComp,
+  ZComp,
 } from "kaplay";
 
 export function createPlayer(
   k: KAPLAYCtx,
   id?: string
-): GameObj<PosComp | SpriteComp | ScaleComp | RotateComp> {
+): GameObj<
+  | PosComp
+  | SpriteComp
+  | ScaleComp
+  | RotateComp
+  | ZComp
+  | AreaComp
+  | AnchorComp
+  | {
+      playerId: string;
+      health: number;
+    }
+> {
   return k.add([
     k.pos(100, 100),
     k.sprite("cursor"),
@@ -24,6 +39,7 @@ export function createPlayer(
     "player",
     {
       playerId: id,
+      health: 100,
     },
   ]);
 }

@@ -8,6 +8,7 @@ import {
 } from "kaplay";
 import { Socket } from "socket.io-client";
 import { initCursor } from "./cursor";
+import { createHealthBar, decreaseHealth, updateHealthBar } from "./healthbar";
 import { Player } from "./menu";
 import { createEnemy, createPlayer, debounce, displayError } from "./util";
 
@@ -16,12 +17,15 @@ const BULLET_SPEED = 5800;
 export function createGameScene(k: KAPLAYCtx, socket: Socket) {
   return k.scene("game", (code: string, list: Player[]) => {
     const player = createPlayer(k, socket.id);
+    const healthBar = createHealthBar(k);
+
     // All these todo's will probably be functions,
     // keyword probably... They're just notes for now.
     // TODO: Create 3 ability buttons (bottom left)
     // TODO: Create instruction (bottom right)
 
     initCursor(k, player, socket, code);
+
     const enemies: Map<
       string,
       GameObj<PosComp | SpriteComp | ScaleComp | RotateComp>
@@ -178,7 +182,13 @@ export function createGameScene(k: KAPLAYCtx, socket: Socket) {
       }) => {
         const { x, y, shooter, targetId } = hitData;
         if (shooter === targetId) return;
+
         addKaboom(vec2(x, y));
+
+        // Only update client health if the person who got hit is the player..
+        if (socket.id !== targetId) return;
+        decreaseHealth(player, 10);
+        updateHealthBar(healthBar, player);
       }
     );
 
