@@ -193,28 +193,14 @@ io.on("connection", (socket: Socket) => {
     disconnect(socket);
   });
 
-  // socket.on(
-  //   "fireBullet",
-  //   (bulletData: { id: string; x: number; y: number; angle: number }) => {
-  //     const roomCode = findRoomCodeForSocket(socket.id);
-  //     if (roomCode) {
-  //       socket
-  //         .to(roomCode)
-  //         .emit("bulletFired", { ...bulletData, shooter: socket.id });
-  //     }
-  //   }
-  // );
-
   socket.on(
     "fireBullet",
     (bulletData: { id: string; x: number; y: number; angle: number }) => {
       const roomCode = findRoomCodeForSocket(socket.id);
       if (roomCode) {
-        // Emit to all clients in the room, including the sender
-        io.to(roomCode).emit("bulletFired", {
-          ...bulletData,
-          shooter: socket.id,
-        });
+        socket
+          .to(roomCode)
+          .emit("bulletFired", { ...bulletData, shooter: socket.id });
       }
     }
   );
