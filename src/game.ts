@@ -7,6 +7,7 @@ import {
   SpriteComp,
 } from "kaplay";
 import { Socket } from "socket.io-client";
+import { createMissileSystem } from "./abilities/missile";
 import { initCursor } from "./cursor";
 import { createHealthBar, decreaseHealth, updateHealthBar } from "./healthbar";
 import { Player } from "./menu";
@@ -30,6 +31,7 @@ export function createGameScene(k: KAPLAYCtx, socket: Socket) {
       string,
       GameObj<PosComp | SpriteComp | ScaleComp | RotateComp>
     > = new Map();
+    createMissileSystem(k, player, enemies);
     const bullets = new Map<string, GameObj>();
 
     list.forEach((player) => {
@@ -116,36 +118,6 @@ export function createGameScene(k: KAPLAYCtx, socket: Socket) {
       }
     );
 
-    // function handleEnemyBulletCollision(
-    //   bullet: GameObj,
-    //   enemy: GameObj<
-    //     | PosComp
-    //     | SpriteComp
-    //     | ScaleComp
-    //     | RotateComp
-    //     | {
-    //         playerId: string;
-    //       }
-    //   >
-    // ) {
-    //   const bulletId = Array.from(bullets.entries()).find(
-    //     ([_, b]) => b === bullet
-    //   )?.[0];
-
-    //   if (bulletId && bullet.shooter !== enemy.playerId) {
-    //     socket.emit("bulletHitC", {
-    //       bulletId,
-    //       targetId: enemy.playerId,
-    //       x: enemy.pos.x,
-    //       y: enemy.pos.y,
-    //       shooter: bullet.shooter, // i think this sends the player's id?
-    //     });
-    //     bullet.opacity = 0.1;
-    //     bullet.destroy();
-    //     bullets.delete(bulletId);
-    //   }
-    // }
-
     function handleBulletCollision(bullet: GameObj, target: GameObj) {
       const bulletId = Array.from(bullets.entries()).find(
         ([_, b]) => b === bullet
@@ -180,6 +152,21 @@ export function createGameScene(k: KAPLAYCtx, socket: Socket) {
     k.onCollide("bullet", "player", (bullet, playerObj) => {
       handleBulletCollision(bullet, playerObj);
     });
+
+    k.onCollide("missile", "enemy", (missile: GameObj<PosComp>, enemy) => {
+      k.addKaboom(missile.pos);
+      missile.destroy();
+      // Emit player hit or some thing
+    });
+
+    k.onCollide(
+      "missile",
+      "missile",
+      (missile: GameObj<PosComp>, missileTwo) => {
+        k.addKaboom(missile.pos);
+        missile.destroy();
+      }
+    );
 
     // Listen for bullet hits
     socket.on(
