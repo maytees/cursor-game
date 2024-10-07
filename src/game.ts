@@ -91,6 +91,7 @@ export function createGameScene(k: KAPLAYCtx, socket: Socket) {
         angle: number;
         shooter: string;
       }) => {
+        console.log("fired");
         const { id, x, y, angle } = bulletData;
         const angleRad = ((angle - 90) * Math.PI) / 180;
         const dirX = Math.cos(angleRad);

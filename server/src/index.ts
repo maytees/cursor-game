@@ -198,9 +198,10 @@ io.on("connection", (socket: Socket) => {
     (bulletData: { id: string; x: number; y: number; angle: number }) => {
       const roomCode = findRoomCodeForSocket(socket.id);
       if (roomCode) {
-        socket
-          .to(roomCode)
-          .emit("bulletFired", { ...bulletData, shooter: socket.id });
+        io.to(roomCode).emit("bulletFired", {
+          ...bulletData,
+          shooter: socket.id,
+        });
       }
     }
   );
