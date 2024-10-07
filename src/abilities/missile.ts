@@ -107,13 +107,6 @@ class Missile {
         Math.PI;
       const angleDifference = angleDiff(targetAngle, this.obj.angle);
 
-      // // Check if target is within FOV
-      // if (Math.abs(angleDifference) <= this.fov / 2) {
-      //   this.speed = this.baseSpeed * 1; // Increase speed
-      // } else {
-      //   this.speed = this.baseSpeed;
-      // }
-
       // Curve towards the target
       const curveAngle = angleDifference * this.curveStrength * k.dt();
       this.obj.angle += curveAngle;
