@@ -48,7 +48,7 @@ class Missile {
     ]);
     this.addBurnerEffect(k);
     this.curveStrength = k.rand(2, 10);
-    this.randomOffset = k.Vec2.fromAngle(k.rand(0, 360)).scale(k.rand(20, 50));
+    this.randomOffset = k.Vec2.fromAngle(k.rand(0, 360)).scale(k.rand(10, 90));
   }
 
   addBurnerEffect(k: KAPLAYCtx) {
@@ -107,12 +107,12 @@ class Missile {
         Math.PI;
       const angleDifference = angleDiff(targetAngle, this.obj.angle);
 
-      // Check if target is within FOV
-      if (Math.abs(angleDifference) <= this.fov / 2) {
-        this.speed = this.baseSpeed * 1.5; // Increase speed
-      } else {
-        this.speed = this.baseSpeed;
-      }
+      // // Check if target is within FOV
+      // if (Math.abs(angleDifference) <= this.fov / 2) {
+      //   this.speed = this.baseSpeed * 1; // Increase speed
+      // } else {
+      //   this.speed = this.baseSpeed;
+      // }
 
       // Curve towards the target
       const curveAngle = angleDifference * this.curveStrength * k.dt();
