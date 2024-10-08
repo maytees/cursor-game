@@ -189,8 +189,8 @@ io.on("connection", (socket: Socket) => {
     disconnect(socket);
   });
 
-  socket.on("leave", () => {
-    disconnect(socket);
+  socket.on("leave", (isLose?: boolean) => {
+    disconnect(socket, isLose);
   });
 
   socket.on(
