@@ -290,7 +290,7 @@ export function createWaitingRoomMenu(k: KAPLAYCtx, socket: Socket) {
       }
     );
 
-    socket.on("playerLeft", (plrs: Player[]) => {
+    socket.on("playerLeft", (plrs: Player[], isLose) => {
       // Don't update if the player which left is the current user
       if (plrs.some((player) => player.id !== socket.id)) return;
 
@@ -301,7 +301,13 @@ export function createWaitingRoomMenu(k: KAPLAYCtx, socket: Socket) {
         playerNameObjects = [];
         playerStatusObjects = [];
         updatePlayerList();
-        k.go("menu");
+        if (isLose) {
+          k.go("win");
+        } else {
+          // If someone just left and did not lose, take the other
+          // to the menu
+          k.go("menu");
+        }
       }
 
       players = plrs;

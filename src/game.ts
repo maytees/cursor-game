@@ -7,6 +7,7 @@ import {
   SpriteComp,
 } from "kaplay";
 import { Socket } from "socket.io-client";
+import addAbilitiesList from "./abilities/list";
 import { createMissileSystem } from "./abilities/missile";
 import { initCursor } from "./cursor";
 import { createHealthBar, decreaseHealth, updateHealthBar } from "./healthbar";
@@ -19,6 +20,7 @@ export function createGameScene(k: KAPLAYCtx, socket: Socket) {
   return k.scene("game", (code: string, list: Player[]) => {
     const player = createPlayer(k, socket.id);
     const healthBar = createHealthBar(k);
+    addAbilitiesList(k);
 
     // All these todo's will probably be functions,
     // keyword probably... They're just notes for now.
@@ -143,7 +145,7 @@ export function createGameScene(k: KAPLAYCtx, socket: Socket) {
 
           if (player.health <= 0) {
             k.go("lose");
-            socket.emit("leave");
+            socket.emit("leave", true);
           }
         }
       }

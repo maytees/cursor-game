@@ -4,6 +4,7 @@ import { io, Socket } from "socket.io-client";
 import { createGameScene } from "./game";
 import { createLoseScene } from "./lose";
 import { createJoinMenu, createMenu, createWaitingRoomMenu } from "./menu";
+import { createWinScreen } from "./win";
 
 let socket: Socket;
 
@@ -37,6 +38,7 @@ createJoinMenu(k, socket);
 createWaitingRoomMenu(k, socket);
 createGameScene(k, socket);
 createLoseScene(k, socket);
+createWinScreen(k, socket);
 
 k.go("menu");
 // k.go("game");

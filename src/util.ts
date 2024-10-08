@@ -120,7 +120,7 @@ export function addBackButton(
   goto: string,
   yOffset: number,
   text?: string,
-  onClickCallback?: any
+  onClickCallback?: () => void
 ) {
   const backButton = k.add([
     k.rect(56 * 6, 16 * 4),
