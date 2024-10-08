@@ -140,6 +140,11 @@ export function createGameScene(k: KAPLAYCtx, socket: Socket) {
         if (target.playerId === socket.id) {
           decreaseHealth(player, 10);
           updateHealthBar(healthBar, player);
+
+          if (player.health <= 0) {
+            k.go("lose");
+            socket.emit("leave");
+          }
         }
       }
     }

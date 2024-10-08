@@ -34,7 +34,7 @@ function generateRoomCode(): string {
   return Math.random().toString(36).substring(2, 8).toUpperCase();
 }
 
-function disconnect(socket: Socket) {
+function disconnect(socket: Socket, isLose?: boolean) {
   activeRooms.forEach((room, code) => {
     const index = room.players.findIndex((p) => p.id === socket.id);
     if (index !== -1) {
@@ -46,7 +46,7 @@ function disconnect(socket: Socket) {
         if (room.host === socket.id) {
           room.host = room.players[0].id;
         }
-        io.to(code).emit("playerLeft", room.players);
+        io.to(code).emit("playerLeft", room.players, isLose);
       }
     }
   });

@@ -2,6 +2,7 @@ import kaplay from "kaplay";
 import "kaplay/global";
 import { io, Socket } from "socket.io-client";
 import { createGameScene } from "./game";
+import { createLoseScene } from "./lose";
 import { createJoinMenu, createMenu, createWaitingRoomMenu } from "./menu";
 
 let socket: Socket;
@@ -35,6 +36,7 @@ createMenu(k, socket);
 createJoinMenu(k, socket);
 createWaitingRoomMenu(k, socket);
 createGameScene(k, socket);
+createLoseScene(k, socket);
 
 k.go("menu");
 // k.go("game");
