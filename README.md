@@ -63,4 +63,5 @@ Someone joining a party will not be able to start the game, as only the party le
 ## Controls
 
 `Left Click` - Fires a bullet
+
 `x` - Fires a missile towards a target (doesn't do damage and is not replicated on the server as of now)
